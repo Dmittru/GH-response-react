@@ -1,5 +1,6 @@
 import axios from "axios";
-export const fetchGithubRepositories = async (perPage, search, page) => {
+
+export const fetchGithubRepository = async (perPage, search, page) => {
     try {
         const response = await axios.get('https://api.github.com/search/repositories', {
             params: {

@@ -1,3 +1,6 @@
+.PagBox{
+    width: 700px;
+}
 .pagerButton{
     font-size: 1.2em;
     background-color: rgba(40, 44, 52, .85);
@@ -9,11 +12,12 @@
 }
 .reposBlock{
     background-color: rgba(245, 245, 245, 0.37);
-    width: 800px;
+    width: 100%;
     padding: 8px;
     margin: 8px;
     border-radius: 15px;
     font-size: 1.2em;
+    box-shadow: rgba(0, 0, 0, .3) 0px 0px 8px 1px;
 }
 .statusRole{
     color: #f5f5f5;
@@ -34,6 +38,8 @@
 .repName{
     font-size: 1.5em;
     font-weight: bold;
+    text-decoration: none;
+    color: black;
 }
 .repText{
     margin: 5px;
@@ -42,4 +48,11 @@
     background-color: #f5f5f5;
     color: black;
     font-weight: bold;
+}
+.repLink{
+    text-decoration: none;
+}
+.PagButtons{
+    display: flex;
+    flex-wrap: wrap;
 }

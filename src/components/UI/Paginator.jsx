@@ -4,6 +4,8 @@ import {fetchGithubRepositories} from "../API/fetchGithubRepositories";
 import {useSearch} from "../../hooks/use-search";
 import {setPage, setStatus} from "../../store/slices/userSlices";
 import {useDispatch} from "react-redux";
+import {isMobile} from 'react-device-detect';
+import {Link} from "react-router-dom";
 
 const Paginator = ({ objects, pages }) => {
     const [repositories, setRepositories] = useState([])
@@ -194,20 +196,19 @@ const Paginator = ({ objects, pages }) => {
     }, [objects]);
 
     return (
-        <div className='flexed'>
+        <div style={isMobile ? {width:'90%'} : {}} className='flexed PagBox'>
             {currentObjects.map((object) => (
                 <div className='reposBlock' key={object.id}>
                     <div className='repTop'>
-
-                        <p className='repText repName'>{object.name}</p>
+                        <Link to={`/repository/${object.owner.login}/${object.name}`} className='repText repName'>{object.name}</Link>
                         <p className='repText'>{object.stargazers_count}⭐</p>
                     </div>
                     <p className='repText'>Последний коммит: {new Date(object.pushed_at).toLocaleDateString("en-GB")+' '+new Date(object.pushed_at).toLocaleTimeString("en-GB")}</p>
-                    <a className='repText' href={object.html_url}>🔗Ссылка на репозиторий</a>
+                    <a target='_blank' className='repText repLink' href={object.html_url}>🔗Ссылка на репозиторий</a>
                 </div>
             ))}
 
-            <div>
+            <div className='PagButtons'>
                 {/*может здесь понадобится длинну проверять по objects*/}
                 {currentObjects.length > 0 ?
                     RenderButtons(pages, page).map((pageNumber,key) => (

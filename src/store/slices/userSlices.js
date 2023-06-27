@@ -4,6 +4,7 @@ const initialState = {
     search: '',
     status:'',
     page:1,
+    searchSafer: false,
 };
 
 const userSlice = createSlice({
@@ -18,10 +19,13 @@ const userSlice = createSlice({
         },
         setPage(state,action){
             state.page = action.payload.page;
+        },
+        setSearchSafer(state,action){
+            state.searchSafer = action.payload.searchSafer;
         }
     },
 });
 
-export const {setSearch,setStatus,setPage} = userSlice.actions;
+export const {setSearch,setStatus,setPage,setSearchSafer} = userSlice.actions;
 
 export default userSlice.reducer;

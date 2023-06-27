@@ -5,6 +5,7 @@ import RepositoryPage from './components/pages/RepositoryPage';
 import store, {persistor} from './store';
 import {Provider} from "react-redux";
 import {PersistGate} from "redux-persist/integration/react";
+import Page404 from "./components/pages/Page404";
 
 const App = () => {
   return (
@@ -13,8 +14,8 @@ const App = () => {
             <PersistGate loading={null} persistor={persistor}>
               <Routes>
                   <Route path="/" element={<SearchPage/>} />
-                  <Route path="/repository/:id" element={<RepositoryPage/>} />
-                  <Route path="*" element={<SearchPage/>} /> //404
+                  <Route path="/repository/:owner/:id" element={<RepositoryPage/>} />
+                  <Route path="*" element={<Page404/>} />
               </Routes>
             </PersistGate>
         </Provider>
