@@ -1,27 +1,95 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import '../styles/Paginator.css'
+import {fetchGithubRepositories} from "../API/fetchGithubRepositories";
+import {useSearch} from "../../hooks/use-search";
+import {setStatus} from "../../store/slices/userSlices";
+import {useDispatch} from "react-redux";
 
-const Paginator = ({ objects, status, pages }) => {
+const Paginator = ({ objects, pages }) => {
     const [currentPage, setCurrentPage] = useState(1);
-    const objectsPerPage = 10;
+    const [repositories, setRepositories] = useState([])
+    const {search, status} = useSearch();
 
-    const indexOfLastObject = currentPage * objectsPerPage;
-    const indexOfFirstObject = indexOfLastObject - objectsPerPage;
-    const currentObjects = objects.slice(indexOfFirstObject, indexOfLastObject);
+    const currentObjects = repositories.slice(0, 10);
+    console.log(currentObjects)
+    
+    const dispatch = useDispatch();
 
-    const handleClick = (pageNumber) => {
+    const ChangePage = async (pageNumber,perPage = 10, searchstroke = search) => {
         setCurrentPage(pageNumber);
+        setRepositories([])
+        dispatch(setStatus({status:'Загружаем следущую страницу...'}));
+        try{
+            const {items, totalPages} = await fetchGithubRepositories(perPage, searchstroke, pageNumber)
+            console.log('LOGGED PAGES:',items, totalPages)
+            setRepositories(items);
+            // setTotalPages(totalPages);
+            if (items.length === 0) {
+                dispatch(setStatus({status:'Ничего не найдено или страница неисправна!'}));
+            }
+        } catch (error) {
+            dispatch(setStatus({status:'Произошла ошибка в странице =('}));
+        }
     };
 
-    const pageNumbers = []; //refactor!!!!!!!!!!!!!!!!!!! to state & map() -> <button>
-    for (let i = 1; i <= pages; i++) {
-        pageNumbers.push(
-            <button className='pagerButton' key={i} onClick={() => handleClick(i)}>
-                {i}
-            </button>
-        );
+    const RenderButtons = (pages, current) => {
+        if (pages < 11) {
+            return Array.from({length: pages > 11 ? 10 : pages}, (_, index) =>
+                <button
+                    className={index + 1 === currentPage ? 'pagerButton picked' : 'pagerButton'}
+                    key={index}
+                    onClick={() => ChangePage(index + 1)}
+                >
+                    {index + 1}
+                </button>
+            )
+        } else {
+            if (current < 5) {
+                return Array.from({length: 10}, (_, index) => {
+                    const refactoredIndex = index + pages-9;
+                    if(index<5){
+                        return (
+                            <button
+                                className={index + 1 === current ? 'pagerButton picked' : 'pagerButton'}
+                                key={index}
+                                onClick={() => ChangePage(index + 1)}
+                            >
+                                {index + 1}
+                            </button>
+                        )
+                    } else if (index > 5 && refactoredIndex < pages-2) {
+                        return (
+                            <button
+                                className='pagerButton'
+                                key={index}
+                            >
+                                {'...'}
+                            </button>
+                        )
+                    } else if(index > 5 && refactoredIndex >= pages-3){
+                        return (
+                            <button
+                                className={index + 1 === current ? 'pagerButton picked' : 'pagerButton'}
+                                key={index}
+                                onClick={() => ChangePage(index + 1)}
+                            >
+                                {refactoredIndex}
+                            </button>
+                        )
+                    }
+                });
+            } else if (current >= 5 && current < pages-5) {
+
+            } else if (current >= pages-5) {
+
+            }
+        }
     }
-    console.log(currentObjects)
+
+    useEffect(() => {
+        setRepositories(objects.slice(0, 9));
+    }, [objects]);
+
     return (
         <div className='flexed'>
             {currentObjects.map((object) => (
@@ -37,9 +105,10 @@ const Paginator = ({ objects, status, pages }) => {
             ))}
 
             <div>
+                {/*может здесь понадобится длинну проверять по objects*/}
                 {currentObjects.length > 0 ?
-                    pageNumbers.map((pageNumber) => (
-                        <span key={pageNumber.props.key}>{pageNumber}</span>
+                    RenderButtons(pages, currentPage).map((pageNumber,key) => (
+                        <span key={key}>{pageNumber}</span>
                     )) :
                     <p className='statusRole'>
                         {status}

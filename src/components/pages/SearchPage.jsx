@@ -1,48 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, {useEffect, useState} from 'react';
 import Paginator from "../UI/Paginator";
 import '../styles/SearchPage.css'
 import {useDispatch} from "react-redux";
 import {useSearch} from "../../hooks/use-search";
-import {setSearch} from "../../store/slices/userSlices";
+import {setSearch, setStatus} from "../../store/slices/userSlices";
+import {fetchGithubRepositories} from "../API/fetchGithubRepositories";
 
 const SearchPage = () => {
-  const [searchQuery, setSearchQuery] = useState('get python machine learning');
   const [repositories, setRepositories] = useState([]);
-  const [totalPages, setTotalPages] = useState(1);
-  const [curStatus, setCurStatus] = useState('Давайте начнём поиск!');
-
+  const [totalPages, setTotalPages] = useState(0);
+  useEffect(()=>{
+      dispatch(setStatus({status:'Давайте начнём поиск!'}))
+  },[])
   const dispatch = useDispatch();
   const SearchQ = useSearch();
-  console.log(SearchQ)
-
-    const fetchRepositories = async (perPage = 100) => {
+    const fetchRepositories = async (perPage, search = SearchQ.search, page = 1) => {
         setRepositories([]);
-        setCurStatus('Ищем...');
-        try {
-            const response = await axios.get('https://api.github.com/search/repositories', {
-                params: {
-                    q: searchQuery.length <= 0 ? '%' : searchQuery,
-                    sort: 'stars',
-                    order: 'desc',
-                    per_page: perPage,
-                },
-            });
-
-            const { items, total_count } = response.data;
-            console.log(items)
-            const totalPages = Math.ceil(total_count / perPage);
+        dispatch(setStatus({status:'Ищем...'}));
+        try{
+            const {items, totalPages} = await fetchGithubRepositories(perPage, search, page)
+            console.log('LOGGED:',items, totalPages)
             setRepositories(items);
             setTotalPages(totalPages);
-            if(items.length === 0){
-                setCurStatus('Ничего не найдено!');
+            if (items.length === 0) {
+                dispatch(setStatus({status:'Ничего не найдено!'}));
             }
-            return { items, totalPages };
         } catch (error) {
-            setCurStatus('Произошла ошибка =(');
-            console.error(error);
-            throw new Error('Failed to search repositories');
+            dispatch(setStatus({status:'Произошла ошибка =('}));
         }
+
     };
 
 
@@ -61,16 +47,16 @@ const SearchPage = () => {
                   placeholder="Поиск по репозиториям..."
                   className='searchbox'
                   onKeyDown={(e)=>{ if (e.key === 'Enter') {
-                      fetchRepositories();
+                      fetchRepositories(10);
                   }}}
               />
-              <button className='searchbutton' onClick={()=>{fetchRepositories()}}>Поиск Github</button>
+              <button className='searchbutton' onClick={()=>{fetchRepositories(10)}}>Поиск Github</button>
           </div>
           <div className='sortLine'>
 
           </div>
       </div>
-      <Paginator objects={repositories} pages={totalPages} status={curStatus}/>
+      <Paginator objects={repositories} pages={totalPages}/>
     </div>
   );
 };
