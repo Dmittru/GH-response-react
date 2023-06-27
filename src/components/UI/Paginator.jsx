@@ -2,28 +2,24 @@ import React, {useEffect, useState} from 'react';
 import '../styles/Paginator.css'
 import {fetchGithubRepositories} from "../API/fetchGithubRepositories";
 import {useSearch} from "../../hooks/use-search";
-import {setStatus} from "../../store/slices/userSlices";
+import {setPage, setStatus} from "../../store/slices/userSlices";
 import {useDispatch} from "react-redux";
 
 const Paginator = ({ objects, pages }) => {
-    const [currentPage, setCurrentPage] = useState(1);
     const [repositories, setRepositories] = useState([])
-    const {search, status} = useSearch();
+    const {search, status, page} = useSearch();
 
     const currentObjects = repositories.slice(0, 10);
-    console.log(currentObjects)
     
     const dispatch = useDispatch();
 
     const ChangePage = async (pageNumber,perPage = 10, searchstroke = search) => {
-        setCurrentPage(pageNumber);
+        dispatch(setPage({page:pageNumber}))
         setRepositories([])
         dispatch(setStatus({status:'Загружаем следущую страницу...'}));
         try{
             const {items, totalPages} = await fetchGithubRepositories(perPage, searchstroke, pageNumber)
-            console.log('LOGGED PAGES:',items, totalPages)
             setRepositories(items);
-            // setTotalPages(totalPages);
             if (items.length === 0) {
                 dispatch(setStatus({status:'Ничего не найдено или страница неисправна!'}));
             }
@@ -36,7 +32,7 @@ const Paginator = ({ objects, pages }) => {
         if (pages < 11) {
             return Array.from({length: pages > 11 ? 10 : pages}, (_, index) =>
                 <button
-                    className={index + 1 === currentPage ? 'pagerButton picked' : 'pagerButton'}
+                    className={index + 1 === page ? 'pagerButton picked' : 'pagerButton'}
                     key={index}
                     onClick={() => ChangePage(index + 1)}
                 >
@@ -69,19 +65,126 @@ const Paginator = ({ objects, pages }) => {
                     } else if(index > 5 && refactoredIndex >= pages-3){
                         return (
                             <button
-                                className={index + 1 === current ? 'pagerButton picked' : 'pagerButton'}
+                                className='pagerButton'
                                 key={index}
-                                onClick={() => ChangePage(index + 1)}
+                                onClick={() => ChangePage(refactoredIndex)}
                             >
                                 {refactoredIndex}
                             </button>
                         )
                     }
                 });
-            } else if (current >= 5 && current < pages-5) {
-
+            } else if (current >= 5 && current <= pages-4) {
+                return Array.from({length: 10}, (_, index) => {
+                    const refactoredIndex = index + pages-9;
+                    if(index<2){
+                        return (
+                            <button
+                                className='pagerButton'
+                                key={index}
+                                onClick={() => ChangePage(index + 1)}
+                            >
+                                {index + 1}
+                            </button>
+                        )
+                    } else if (index === 2) {
+                        return (
+                            <button
+                                className='pagerButton'
+                                key={index}
+                            >
+                                {'...'}
+                            </button>
+                        )
+                    } else if(index > 2 && index < 7){
+                        if(index === 3){
+                            return(<button
+                                className='pagerButton'
+                                key={index}
+                                onClick={() => ChangePage(current - 1)}
+                            >
+                                {current-1}
+                            </button>)
+                        } else if(index === 4){
+                            return(<button
+                                className='pagerButton picked'
+                                key={index}
+                                onClick={() => ChangePage(current)}
+                            >
+                                {current}
+                            </button>)
+                        } else if (index === 5){
+                            return(<button
+                                className='pagerButton'
+                                key={index}
+                                onClick={() => ChangePage(current+1)}
+                            >
+                                {current+1}
+                            </button>)
+                        } else if (index === 6) {
+                            return (<button
+                                className='pagerButton'
+                                key={index}
+                                onClick={() => ChangePage(current+2)}
+                            >
+                                {current+2}
+                            </button>)
+                        }
+                    }else if(index === 7){
+                        return (
+                            <button
+                                className='pagerButton'
+                                key={index}
+                            >
+                                {'...'}
+                            </button>
+                        )
+                    }else if(index > 7 && refactoredIndex >= pages-1){
+                        return (
+                            <button
+                                className='pagerButton'
+                                key={index}
+                                onClick={() => ChangePage(refactoredIndex)}
+                            >
+                                {refactoredIndex}
+                            </button>
+                        )
+                    }
+                });
             } else if (current >= pages-5) {
-
+                return Array.from({length: 10}, (_, index) => {
+                    const refactoredIndex = index + pages-9;
+                    if(index<2){
+                        return (
+                            <button
+                                className={index + 1 === current ? 'pagerButton picked' : 'pagerButton'}
+                                key={index}
+                                onClick={() => ChangePage(index + 1)}
+                            >
+                                {index + 1}
+                            </button>
+                        )
+                    } else if (index === 3) {
+                        return (
+                            <button
+                                className='pagerButton'
+                                key={index}
+                            >
+                                {'...'}
+                            </button>
+                        )
+                    } else if(index > 4 && refactoredIndex >= pages-5){
+                        return (
+                            <button
+                                className={refactoredIndex === current ? 'pagerButton picked' : 'pagerButton'}
+                                key={index}
+                                onClick={() => ChangePage(refactoredIndex)}
+                            >
+                                {refactoredIndex}
+                            </button>
+                        )
+                    }
+                });
             }
         }
     }
@@ -107,7 +210,7 @@ const Paginator = ({ objects, pages }) => {
             <div>
                 {/*может здесь понадобится длинну проверять по objects*/}
                 {currentObjects.length > 0 ?
-                    RenderButtons(pages, currentPage).map((pageNumber,key) => (
+                    RenderButtons(pages, page).map((pageNumber,key) => (
                         <span key={key}>{pageNumber}</span>
                     )) :
                     <p className='statusRole'>

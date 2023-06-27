@@ -3,6 +3,7 @@ import {createSlice} from "@reduxjs/toolkit";
 const initialState = {
     search: '',
     status:'',
+    page:1,
 };
 
 const userSlice = createSlice({
@@ -12,15 +13,15 @@ const userSlice = createSlice({
         setSearch(state, action) {
             state.search = action.payload.search;
         },
-        removeSearch(state) {
-            state.search = '';
-        },
         setStatus(state,action){
             state.status = action.payload.status;
+        },
+        setPage(state,action){
+            state.page = action.payload.page;
         }
     },
 });
 
-export const {setSearch, removeSearch,setStatus} = userSlice.actions;
+export const {setSearch,setStatus,setPage} = userSlice.actions;
 
 export default userSlice.reducer;

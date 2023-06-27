@@ -3,7 +3,7 @@ import Paginator from "../UI/Paginator";
 import '../styles/SearchPage.css'
 import {useDispatch} from "react-redux";
 import {useSearch} from "../../hooks/use-search";
-import {setSearch, setStatus} from "../../store/slices/userSlices";
+import {setPage, setSearch, setStatus} from "../../store/slices/userSlices";
 import {fetchGithubRepositories} from "../API/fetchGithubRepositories";
 
 const SearchPage = () => {
@@ -11,17 +11,18 @@ const SearchPage = () => {
   const [totalPages, setTotalPages] = useState(0);
   useEffect(()=>{
       dispatch(setStatus({status:'Давайте начнём поиск!'}))
+      dispatch(setPage({page:1}))
   },[])
   const dispatch = useDispatch();
   const SearchQ = useSearch();
     const fetchRepositories = async (perPage, search = SearchQ.search, page = 1) => {
         setRepositories([]);
         dispatch(setStatus({status:'Ищем...'}));
+        dispatch(setPage({page:1}))
         try{
-            const {items, totalPages} = await fetchGithubRepositories(perPage, search, page)
-            console.log('LOGGED:',items, totalPages)
+            const {items, ReducedTotalPages} = await fetchGithubRepositories(perPage, search, page)
             setRepositories(items);
-            setTotalPages(totalPages);
+            setTotalPages(ReducedTotalPages);
             if (items.length === 0) {
                 dispatch(setStatus({status:'Ничего не найдено!'}));
             }
@@ -42,7 +43,6 @@ const SearchPage = () => {
                   value={SearchQ.search}
                   onChange={(e)=>{
                       dispatch(setSearch({search:String(e.target.value)}))
-                      console.log(e.target.value)
                   }}
                   placeholder="Поиск по репозиториям..."
                   className='searchbox'
@@ -56,6 +56,7 @@ const SearchPage = () => {
 
           </div>
       </div>
+
       <Paginator objects={repositories} pages={totalPages}/>
     </div>
   );

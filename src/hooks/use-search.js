@@ -1,9 +1,9 @@
 import {useSelector} from "react-redux";
 
 export function useSearch() {
-    const {search, status} = useSelector(state => state.user);
+    const {search, status, page} = useSelector(state => state.user);
 
     return {
-        search, status
+        search, status, page
     };
 }
